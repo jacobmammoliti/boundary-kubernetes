@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: worker-config
+  labels:
+    app: boundary
+data:
+  boundary.hcl: |
+    disable_mlock = true
+
+    worker {
+      name        = "env://POD_NAME"
+      description = "Boundary worker"
+
+      controllers = ["controller-cluster"]
+      
+      public_addr = "env://NODE_IP"
+    }
+
+    # Public API listener configuration blocks
+    listener "tcp" {
+      address     = "0.0.0.0:9202"
+      purpose     = "proxy"
+      tls_disable = true
+    }
+
+    kms "aead" {
+      purpose   = "worker-auth"
+      aead_type = "aes-gcm"
+      key       = "8fZBjCUfN0TzjEGLQldGY4+iE9AkOvCfjh7+p0GtRBQ="
+      key_id    = "global_worker-auth"
+    }

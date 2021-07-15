@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: boundary-worker
+  labels:
+    app: boundary
+    type: worker
+spec:
+  selector:
+    matchLabels:
+      app: boundary
+      type: worker
+  template:
+    metadata:
+      labels:
+        app: boundary
+        type: worker
+    spec:
+      serviceAccountName: boundary-sa
+      containers:
+        - name: boundary
+          image: hashicorp/boundary
+          imagePullPolicy: Always
+          command:
+            - "/bin/sh"
+            - "-c"
+          args:
+            - "boundary server -config /boundary/boundary.hcl"
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+          readinessProbe:
+            tcpSocket:
+              port: 9202
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 9202
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          ports:
+            - containerPort: 9202
+              name: proxy
+              hostPort: 9202
+          volumeMounts:
+            - name: worker-config
+              mountPath: /boundary
+      volumes:
+        - name: worker-config
+          configMap:
+            name: worker-config

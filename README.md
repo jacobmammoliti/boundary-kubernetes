@@ -1,6 +1,8 @@
 # HashiCorp Boundary on Kubernetes
 Deploy HashiCorp Boundary to a Kubernetes cluster.
 
+> Note: I am pulling my images from my personal Dockerhub since I am running this on a RaspberryPi cluster and need an arm64 image.
+
 ## Requirements:
   - A Kubernetes cluster
   - A HashiCorp Vault cluster with a Transit key (for Boundary KMS)

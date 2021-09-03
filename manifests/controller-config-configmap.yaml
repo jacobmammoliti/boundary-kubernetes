@@ -21,35 +21,50 @@ data:
 
     # Public API listener configuration blocks
     listener "tcp" {
-      address     = "0.0.0.0:9200"
-      purpose     = "api"
-      tls_disable = true
+      address       = "[::]:9200"
+      purpose       = "api"
+      tls_cert_file = "/boundary/userconfig/tls/tls.crt"
+      tls_key_file  = "/boundary/userconfig/tls/tls.key"
     }
 
     # Data-plane listener configuration block (used for worker coordination)
     listener "tcp" {
-      address     = "0.0.0.0:9201"
-      purpose     = "cluster"
-      tls_disable = true
+      address = "[::]:9201"
+      purpose = "cluster"
     }
 
-    kms "aead" {
-      purpose   = "root"
-      aead_type = "aes-gcm"
-      key       = "sP1fnF5Xz85RrXyELHFeZg9Ad2qt4Z4bgNHVGtD6ung="
-      key_id    = "global_root"
-    }
-    
-    kms "aead" {
-      purpose   = "worker-auth"
-      aead_type = "aes-gcm"
-      key       = "8fZBjCUfN0TzjEGLQldGY4+iE9AkOvCfjh7+p0GtRBQ="
-      key_id    = "global_worker-auth"
+    kms "transit" {
+      purpose         = "root"
+      address         = "https://vault.vault.svc.cluster.local:8200"
+      disable_renewal = "false"
+
+      key_name   = "boundary"
+      mount_path = "transit/"
+      namespace  = "root/"
+
+      tls_skip_verify = "true"
     }
 
-    kms "aead" {
-      purpose   = "recovery"
-      aead_type = "aes-gcm"
-      key       = "8fZBjCUfN0TzjEGLQldGY4+iE9AkOvCfjh7+p0GtRBQ="
-      key_id    = "global_recovery"
+    kms "transit" {
+      purpose         = "worker-auth"
+      address         = "https://vault.vault.svc.cluster.local:8200"
+      disable_renewal = "false"
+
+      key_name   = "boundary"
+      mount_path = "transit/"
+      namespace  = "root/"
+
+      tls_skip_verify = "true"
+    }
+
+    kms "transit" {
+      purpose         = "recovery"
+      address         = "https://vault.vault.svc.cluster.local:8200"
+      disable_renewal = "false"
+
+      key_name   = "boundary"
+      mount_path = "transit/"
+      namespace  = "root/"
+
+      tls_skip_verify    = "true"
     }

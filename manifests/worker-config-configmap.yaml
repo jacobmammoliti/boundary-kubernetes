@@ -14,19 +14,23 @@ data:
 
       controllers = ["controller-cluster"]
       
-      public_addr = "env://NODE_IP"
+      public_addr = "env://HOST_IP"
     }
 
     # Public API listener configuration blocks
     listener "tcp" {
-      address     = "0.0.0.0:9202"
-      purpose     = "proxy"
-      tls_disable = true
+      address  = "[::]:9202"
+      purpose  = "proxy"
     }
 
-    kms "aead" {
-      purpose   = "worker-auth"
-      aead_type = "aes-gcm"
-      key       = "8fZBjCUfN0TzjEGLQldGY4+iE9AkOvCfjh7+p0GtRBQ="
-      key_id    = "global_worker-auth"
+    kms "transit" {
+      purpose         = "worker-auth"
+      address         = "https://vault.vault.svc.cluster.local:8200"
+      disable_renewal = "false"
+
+      key_name   = "boundary"
+      mount_path = "transit/"
+      namespace  = "root/"
+
+      tls_skip_verify = "true"
     }
